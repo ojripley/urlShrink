@@ -85,7 +85,10 @@ app.get('/u/:id', (req, res) => {
 //   /////////////////////////////
 
 app.post('/urls' , (req, res) => {
-
+  
+  // body-parser is responsible for turning the body into an object for us to use
+  console.log(req.body);
+  res.send('ok');
 });
 
 app.post('/urls/:id', (req, res) => {
@@ -103,3 +106,15 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
 
 });
+
+const generateRandomString = function(length) {
+
+  let string = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
+
+  for (let i = 0; i < length; i++) {
+    string += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  return string;
+};
