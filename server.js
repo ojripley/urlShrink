@@ -1,13 +1,17 @@
 const express = require('express');
 const app = express();
-const port = 8080;
+const PORT = 8080;
 
-app.listen(port, () => {
-  console.log('Listening on port 8080');
+const urlDatabase = {
+  'b2xVn2': 'http:/www.lighthouselabs.ca',
+  '9sm5xK': 'http://www.google.com'
+};
+
+app.listen(PORT, () => {
+  console.log(`app is listening on port: ${PORT}`);
 });
 
 app.get('/', (request, response) => {
-  
 
   // if user is logged in, redirects to /urls
   response.redirect('/urls');
@@ -17,7 +21,7 @@ app.get('/', (request, response) => {
 });
 
 app.get('/urls', (request, response) => {
-  response.send('welcome to urls!');
+  response.send('welcome to urls!\n');
 });
 
 app.get('/login', (request, response) => {
