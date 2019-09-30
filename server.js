@@ -53,7 +53,7 @@ app.get('/urls/new', (req, res) => {
 
 // the colon in this address makes the following a VARIABLE. so 'shortURL' is not translated literally
 // this means that route definitions matter! urls/new must come before urls/:id because otherwise we will land on :new (which we don't want)
-app.get('/urls/:id', (req, res) => {
+app.get('/urls/:shortURL', (req, res) => {
 
   // req.params.shortURL refers to the variable in the address. :efjfjefojef becomes a paramater when the address is parsed
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
@@ -72,12 +72,13 @@ app.get('/register', (req, res) => {
 
 });
 
-app.get('urls/:id/delete', (req, res) => {
+app.get('urls/:shortURL/delete', (req, res) => {
 
 });
 
-app.get('/u/:id', (req, res) => {
-
+app.get('/u/:shortURL', (req, res) => {
+  // should redirect to the long url
+  res.redirect(urlDatabase[req.params.shortURL]);
 });
 
 //   /////////////////////////////
@@ -89,7 +90,7 @@ app.post('/urls' , (req, res) => {
   // body-parser is responsible for turning the body into an object for us to use
   const newKey = generateRandomString(6);
   urlDatabase[newKey] =  req.body.longURL;
-  res.redirect('/urls/:' + newKey);
+  res.redirect('/urls/' + newKey);
 });
 
 app.post('/urls/:id', (req, res) => {

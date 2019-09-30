@@ -3,8 +3,8 @@
   <head>
 
     <!-- this is js including the partial header. keeps the header seperate so we use it without duplicating betweeen files-->
-    <!-- stay dry my firends -->
-    <%- include partials/_header.ejs %>
+    <!-- stay dry my friends -->
+    <%- include partials/_header %>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
@@ -12,7 +12,7 @@
   </head>
 
   <body>
-    <div class="card text-centre">
+    <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
