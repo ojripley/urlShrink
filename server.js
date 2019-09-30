@@ -11,7 +11,13 @@ app.listen(PORT, () => {
   console.log(`app is listening on port: ${PORT}`);
 });
 
+app.get('/hello', (req,res) => {
+  res.send('<html><body>hello <b>World</b></body></html>\n');
+});
+
 app.get('/', (req, res) => {
+
+  const x = 4;
 
   // if user is logged in, redirects to /urls
   res.redirect('/urls');
@@ -21,11 +27,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  res.send('welcome to urls!\n');
+  res.send('welcome to urls!\n', x);
 });
 
-app.get('urls.json', (req, res) => {
-
+app.get('/urls.json', (req, res) => {
+  res.json(urlDatabase);
 });
 
 app.get('/login', (req, res) => {
