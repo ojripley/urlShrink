@@ -19,6 +19,7 @@ app.listen(PORT, () => {
 
 //   /////////////////////////////
 //   // get requests follow below
+//   // (route definition)
 //   /////////////////////////////
 
 // get request handlers
@@ -38,8 +39,17 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+app.get('/urls/new', (req, res) => {
+
+  res.render('urls_new');
+
+  // if user is not logged in, redirects to /login
+  res.redirect('/login');
+});
+
 // the colon in this address makes the following a VARIABLE. so 'shortURL' is not translated literally
-app.get('/urls/:shortURL', (req, res) => {
+// this means that route definitions matter! urls/new must come before urls/:id because otherwise we will land on :new (which we don't want)
+app.get('/urls/:id', (req, res) => {
 
   // req.params.shortURL refers to the variable in the address. :efjfjefojef becomes a paramater when the address is parsed
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
@@ -55,16 +65,6 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-
-});
-
-app.get('/urls/new', (req, res) => {
-
-  // if user is not logged in, redirects to /login
-  res.redirect('/login');
-});
-
-app.get('/urls/:id' , (req, res) => {
 
 });
 
