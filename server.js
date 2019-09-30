@@ -8,7 +8,7 @@ app.set('view engine', 'ejs');
 
 // body parser converts the request body from a Buffer into a string that can be read
 const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({extend: true}));
+app.use(bodyParser.urlencoded({extended: true}));
 
 // temporary(?) database set up
 const urlDatabase = {
@@ -78,6 +78,9 @@ app.get('urls/:shortURL/delete', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   // should redirect to the long url
+
+  console.log(req.params.shortURL);
+  
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
@@ -89,7 +92,7 @@ app.post('/urls' , (req, res) => {
   
   // body-parser is responsible for turning the body into an object for us to use
   const newKey = generateRandomString(6);
-  urlDatabase[newKey] =  req.body.longURL;
+  urlDatabase[newKey] =  'http://' + req.body.longURL;
   res.redirect('/urls/' + newKey);
 });
 
