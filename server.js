@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
-app.set('veiw engine', 'ejs');
+app.set('view engine', 'ejs');
 
 const urlDatabase = {
   'b2xVn2': 'http:/www.lighthouselabs.ca',
@@ -19,8 +19,6 @@ app.get('/hello', (req,res) => {
 
 app.get('/', (req, res) => {
 
-  const x = 4;
-
   // if user is logged in, redirects to /urls
   res.redirect('/urls');
 
@@ -29,7 +27,10 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  res.send('welcome to urls!\n', x);
+  // res.send('welcome to urls!\n');
+
+  let templateVars = { urls: urlDatabase };
+  res.render('urls_index', templateVars);
 });
 
 app.get('/urls.json', (req, res) => {
