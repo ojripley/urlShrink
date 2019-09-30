@@ -1,18 +1,27 @@
+// app set up
 const express = require('express');
 const app = express();
 const PORT = 8080;
 
+// view engine set up
 app.set('view engine', 'ejs');
 
+// temporary(?) database set up
 const urlDatabase = {
-  'b2xVn2': 'http:/www.lighthouselabs.ca',
+  'b2xVn2': 'http://www.lighthouselabs.ca',
   '9sm5xK': 'http://www.google.com'
 };
 
+// ears open
 app.listen(PORT, () => {
   console.log(`app is listening on port: ${PORT}`);
 });
 
+//   /////////////////////////////
+//   // get requests follow below
+//   /////////////////////////////
+
+// get request handlers
 app.get('/', (req, res) => {
 
   // if user is logged in, redirects to /urls
@@ -28,7 +37,6 @@ app.get('/urls', (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
 });
-
 
 // the colon in this address makes the following a VARIABLE. so 'shortURL' is not translated literally
 app.get('/urls/:shortURL', (req, res) => {
@@ -67,6 +75,10 @@ app.get('urls/:id/delete', (req, res) => {
 app.get('/u/:id', (req, res) => {
 
 });
+
+//   /////////////////////////////
+//   // post requests follow below
+//   /////////////////////////////
 
 app.post('/urls' , (req, res) => {
 
