@@ -31,9 +31,6 @@ app.get('/', (req, res) => {
 
   // if user is logged in, redirects to /urls
   res.redirect('/urls');
-
-  // if user is not logged in, redirects to /login
-  res.redirect('/login');
 });
 
 app.get('/urls', (req, res) => {
@@ -46,9 +43,6 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
 
   res.render('urls_new');
-
-  // if user is not logged in, redirects to /login
-  res.redirect('/login');
 });
 
 // the colon in this address makes the following a VARIABLE. so 'shortURL' is not translated literally
@@ -64,23 +58,8 @@ app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get('/login', (req, res) => {
-
-});
-
-app.get('/register', (req, res) => {
-
-});
-
-app.get('urls/:shortURL/delete', (req, res) => {
-
-});
-
 app.get('/u/:shortURL', (req, res) => {
-  // should redirect to the long url
-
-  console.log(req.params.shortURL);
-  
+  // should redirect to the long url  
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
@@ -95,21 +74,18 @@ app.post('/urls' , (req, res) => {
   urlDatabase[newKey] =  'http://' + req.body.longURL;
   res.redirect('/urls/' + newKey);
 });
-app.post('/urls/:id', (req, res) => {
 
+app.post('/urls/:shortURL', (req, res) => {
+
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  res.render('urls_show', templateVars);
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
-});
-
-app.post('/login', (req, res) => {
-
-});
-
-app.post('/logout', (req, res) => {
-
 });
 
 const generateRandomString = function(length) {
