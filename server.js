@@ -95,13 +95,13 @@ app.post('/urls' , (req, res) => {
   urlDatabase[newKey] =  'http://' + req.body.longURL;
   res.redirect('/urls/' + newKey);
 });
-
 app.post('/urls/:id', (req, res) => {
 
 });
 
-app.post('/urls/:id/delete', (req, res) => {
-
+app.post('/urls/:shortURL/delete', (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
 });
 
 app.post('/login', (req, res) => {
