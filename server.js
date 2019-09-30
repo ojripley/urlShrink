@@ -6,6 +6,10 @@ const PORT = 8080;
 // view engine set up
 app.set('view engine', 'ejs');
 
+// body parser converts the request body from a Buffer into a string that can be read
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({extend: true}));
+
 // temporary(?) database set up
 const urlDatabase = {
   'b2xVn2': 'http://www.lighthouselabs.ca',
