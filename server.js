@@ -34,14 +34,16 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  // res.send('welcome to urls!\n');
-
+  
+  // renders the urlDatabase in an easy to read table on the page /urls
   let templateVars = { urls: urlDatabase };
+  console.log("rendering urlDatabase on /urls");
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
 
+  console.log('rendering create new url page on /urls/new');
   res.render('urls_new');
 });
 
@@ -51,15 +53,18 @@ app.get('/urls/:shortURL', (req, res) => {
 
   // req.params.shortURL refers to the variable in the address. :efjfjefojef becomes a paramater when the address is parsed
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  console.log(`rendering a page for the url ${templateVars.longURL}`);
   res.render('urls_show', templateVars);
 });
 
 app.get('/urls.json', (req, res) => {
+  // responding with urlDatabase as a json string
   res.json(urlDatabase);
 });
 
 app.get('/u/:shortURL', (req, res) => {
-  // should redirect to the long url  
+  // should redirect to the long url
+  console.log('sending user to long url endpoint');
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
@@ -71,19 +76,21 @@ app.post('/urls' , (req, res) => {
   
   // body-parser is responsible for turning the body into an object for us to use
   const newKey = generateRandomString(6);
+  console.log('accepting request to update urlDatabase with new longURL', req.body.longURL);
   urlDatabase[newKey] =  'http://' + req.body.longURL;
   res.redirect('/urls/' + newKey);
 });
 
 app.post('/urls/:shortURL', (req, res) => {
 
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-
+  urlDatabase[req.params.shortURL] = 'http://' + req.body.longURL;
+  console.log(`updating ${req.params.shortURL} to point to ${req.body.longURL}`);
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render('urls_show', templateVars);
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
+  console.log(`deleting ${urlDatabase[req.params.shortURL]} and redirecting to /urls`);
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
@@ -91,6 +98,8 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 const generateRandomString = function(length) {
   let string = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
+
+  console.log('generating key for new url pair');
 
   for (let i = 0; i < length; i++) {
     string += characters.charAt(Math.floor(Math.random() * characters.length));
