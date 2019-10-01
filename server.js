@@ -46,15 +46,21 @@ app.listen(PORT, () => {
 // get request handlers
 app.get('/', (req, res) => {
 
-  // if user is logged in, redirects to /urls
-  res.redirect('/urls');
+  if (req.cookies.user_id) {
+    // if user is logged in, redirects to /urls
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get('/urls', (req, res) => {
   
+  console.log(req.cookies.user_id); ///////// todo: FIND COOKIES
+
   // renders the urlDatabase in an easy to read table on the page /urls
   let templateVars = {
-    username: req.cookies['username'],
+    user: users[req.cookies.user_id],
     urls: urlDatabase
   };
   console.log("rendering urlDatabase on /urls");
@@ -86,6 +92,11 @@ app.get('/u/:shortURL', (req, res) => {
   // should redirect to the long url
   console.log('sending user to long url endpoint');
   res.redirect(urlDatabase[req.params.shortURL]);
+});
+
+app.get('/login', (req, res) => {
+
+  res.render('login');
 });
 
 app.get('/register', (req, res) => {
@@ -121,18 +132,28 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  console.log('posting to /username');
-  console.log(req.body.username);
+  console.log('posting to /login');
+  
 
-  // the .cookie function is provided by Express
-  res.cookie('username', req.body.username).redirect('/urls');
+  console.log(users);
 
+  for (let user in users) {
+    console.log(`user ${users[user].email}   from form ${req.body.email}`);
+    if (users[user].email === req.body.email) {
+      if (users[user].password === req.body.password) {
+        res.cookie('user_id', users[user].id);
+        res.redirect('/urls');
+        return;
+      }
+    }
+  }
+  res.status(403).send('user email or password incorrect!');
 });
 
 app.post('/logout', (req, res) => {
-  console.log('time to logout the user', req.cookies.username);
+  console.log('time to logout the user', req.cookies.user_id);
 
-  res.clearCookie('username');
+  res.clearCookie('user_id');
 
   res.redirect('/urls');
 });
@@ -148,10 +169,12 @@ app.post('/register', (req, res) => {
     password: req.body.password
   };
 
+  console.log(users[newUserID]);
+
   res.cookie('user_id', users[newUserID].id);
 
   console.log(users);
-
+  
   res.redirect('/urls');
 });
 
