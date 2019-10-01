@@ -5,20 +5,29 @@
       aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-
-    <form class="form-inline" method="POST" action="/login">
-      <div class="fomr-group mb-2">
-        <label for="login">Enter Login:</label>
-        <input class="form-control" type="text" name="login" placeholder="login" step="width: 300px; margin 1em;">
-        <button type="submit" class="btn btn-primary">Login</button>
-      </div>
-    </form>
-
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
+      <% if (!username) { %>
+      <form class="form-inline" method="POST" action="/login">
+        <div class="form-group mb-2">
+          <label for="username">Enter Login:</label>
+          <input class="form-control" type="text" name="username" placeholder="username" style="width: 300px; margin: 1em;">
+          <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+      </form>
+      <% } else { %>
+      <!-- <a href="/logout"><%= username %> (Click to Logout)</a> -->
+      
+      <form method="POST" action="/logout">
+        <div class="form-group mb-2">
+          <label for="username">User: <%= username %></label>
+          <button type="submit" class="btn btn-primary" style="margin: 10px">Logout</button>
+        </div>
+      </form>
+      <% } %>
   </nav>
 </header>

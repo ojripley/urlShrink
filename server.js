@@ -1,5 +1,7 @@
 // app set up
 const express = require('express');
+let cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const app = express();
 const PORT = 8080;
 
@@ -7,8 +9,10 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 
 // body parser converts the request body from a Buffer into a string that can be read
-const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
+
+
 
 // temporary(?) database set up
 const urlDatabase = {
@@ -36,7 +40,10 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
   
   // renders the urlDatabase in an easy to read table on the page /urls
-  let templateVars = { urls: urlDatabase };
+  let templateVars = {
+    username: req.cookies['username'],
+    urls: urlDatabase
+  };
   console.log("rendering urlDatabase on /urls");
   res.render('urls_index', templateVars);
 });
@@ -92,6 +99,23 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   console.log(`deleting ${urlDatabase[req.params.shortURL]} and redirecting to /urls`);
   delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
+});
+
+app.post('/login', (req, res) => {
+  console.log('posting to /username');
+  console.log(req.body.username);
+
+  // the .cookie function is provided by Express
+  res.cookie('username', req.body.username).redirect('/urls');
+
+});
+
+app.post('/logout', (req, res) => {
+  console.log('time to logout the user', req.cookies.username);
+
+  res.clearCookie('username');
+
   res.redirect('/urls');
 });
 
