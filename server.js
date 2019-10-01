@@ -20,6 +20,19 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
 // ears open
 app.listen(PORT, () => {
   console.log(`app is listening on port: ${PORT}`);
@@ -75,6 +88,11 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
+app.get('/register', (req, res) => {
+
+  res.render('register');
+});
+
 //   /////////////////////////////
 //   // post requests follow below
 //   /////////////////////////////
@@ -115,6 +133,24 @@ app.post('/logout', (req, res) => {
   console.log('time to logout the user', req.cookies.username);
 
   res.clearCookie('username');
+
+  res.redirect('/urls');
+});
+
+app.post('/register', (req, res) => {
+  // registration handler
+
+  const newUserID = generateRandomString(3);
+
+  users[newUserID] = {
+    id: newUserID,
+    email: req.body.email,
+    password: req.body.password
+  };
+
+  res.cookie('user_id', users[newUserID].id);
+
+  console.log(users);
 
   res.redirect('/urls');
 });
