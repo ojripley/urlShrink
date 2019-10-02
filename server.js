@@ -1,25 +1,18 @@
-
 //
 //
 //
-//                  YOU LEFT OFF AT 'USERS CAN ONLY SEE THEIR OWN SHORTENED URLS'
+//
+//
+//  URL shortener
+//  Tiny App Assignment
+//  Week 3 of Lighthouse Labs
+//  Owen Ripley
+//  September, 2019
 //
 //
 //
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//
+//
 
 
 
