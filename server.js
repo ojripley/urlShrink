@@ -1,3 +1,30 @@
+
+
+
+//
+//
+//
+//                  YOU LEFT OFF AT 'USERS CAN ONLY SEE THEIR OWN SHORTENED URLS'
+//
+//
+//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // app/constants set up
 const express = require('express');
 const cookieParser = require('cookie-parser');
@@ -23,16 +50,17 @@ app.use(cookieParser());
 
 // temporary database set up (stored in objects for now instead of a real database)
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  'b2xVn2': { longURL: 'http://www.lighthouselabs.ca', userID: 'ojr' },
+  '9sm5xK': { longURL: 'http://www.google.com', userID: 'ojr' }
 };
 
+// urlDatabase[newKey].longURL = 'http://' + req.body.longURL;
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+  "ojr": {
+    id: "ojr",
+    email: "o@m.com",
+    password: "p"
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -67,12 +95,8 @@ app.listen(PORT, () => {
 
 // get request handlers
 app.get('/', (req, res) => {
-  if (req.cookies.user_id) {
-    // if user is logged in, redirects to /urls
-    res.redirect('/urls');
-  } else {
-    res.redirect('/login');
-  }
+  // if user is logged in, redirects to /urls
+  res.redirect('/urls');
 });
 
 
@@ -88,8 +112,16 @@ app.get('/urls', (req, res) => {
 
 
 app.get('/urls/new', (req, res) => {
-  console.log('rendering create new url page on /urls/new');
-  res.render('urls_new');
+
+
+
+  if (!req.cookies.user_id) {
+    console.log('login first!');
+    res.redirect('/login');
+  } else {
+    console.log('letting you in!');
+    res.render('urls_new', { user: users[req.cookies.user_id] });
+  }
 });
 
 
@@ -97,7 +129,7 @@ app.get('/urls/new', (req, res) => {
 // this means that route definitions matter! urls/new must come before urls/:id because otherwise we will land on :new (which we don't want)
 app.get('/urls/:shortURL', (req, res) => {
   // req.params.shortURL refers to the variable in the address. :efjfjefojef becomes a paramater when the address is parsed
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies.user_id] };
   console.log(`rendering a page for the url ${templateVars.longURL}`);
   res.render('urls_show', templateVars);
 });
@@ -111,7 +143,7 @@ app.get('/urls.json', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   // redirects user to the longURL endpoint
-  res.redirect(urlDatabase[req.params.shortURL]);
+  res.redirect(urlDatabase[req.params.shortURL].longURL);
 });
 
 
@@ -138,22 +170,28 @@ app.get('/register', (req, res) => {
 app.post('/urls' , (req, res) => {
   const newKey = generateRandomString(6);
   console.log('accepting request to update urlDatabase with new longURL', req.body.longURL);
-  urlDatabase[newKey] =  'http://' + req.body.longURL;
+  urlDatabase[newKey] = { longURL: 'http://' + req.body.longURL, userID: req.cookies.user_id };
+
+  console.log(req.cookies.user_id);
+
+  console.log(`new link object is ${urlDatabase[newKey].longURL} and ${urlDatabase[newKey].userID}`);
+
   res.redirect('/urls/' + newKey);
 });
 
 
 app.post('/urls/:shortURL', (req, res) => {
+  urlDatabase[req.params.shortURL] = { longURL: 'http://' + req.body.longURL, userID: req.cookies.user_id };
+  
+  console.log(urlDatabase[req.params.shortURL].longURL + '  ' + urlDatabase[req.params.shortURL].userID);
 
-  urlDatabase[req.params.shortURL] = 'http://' + req.body.longURL;
-  console.log(`updating ${req.params.shortURL} to point to ${req.body.longURL}`);
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies.user_id] };
+
   res.render('urls_show', templateVars);
 });
 
 
 app.post('/urls/:shortURL/delete', (req, res) => {
-  console.log(`deleting ${urlDatabase[req.params.shortURL]} and redirecting to /urls`);
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
