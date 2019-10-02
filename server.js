@@ -21,6 +21,12 @@ const express = require('express');
 const cookieParser = require('cookie-session');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
+const {
+  generateRandomString,
+  authenticate,
+  fetchUserURLs,
+  fetchUserByEmail
+} = require('./helperFunctions');
 const app = express();
 const PORT = 8080;
 
@@ -233,19 +239,22 @@ app.post('/register', (req, res) => {
 
   if (!fetchUserByEmail(req.body.email, users)) {
     // if user email does not already exist
+    if (req.body.password.length !== 0) {
+      // new user object
+      const newUserID = generateRandomString(3);
+      users[newUserID] = {
+        id: newUserID,
+        email: req.body.email,
+        // pass word is stored as an hash key, with saltRounds: 10
+        password: bcrypt.hashSync(req.body.password, 10)
+      };
 
-    // new user object
-    const newUserID = generateRandomString(3);
-    users[newUserID] = {
-      id: newUserID,
-      email: req.body.email,
-      // pass word is stored as an hash key, with saltRounds: 10
-      password: bcrypt.hashSync(req.body.password, 10)
-    };
-
-    // set userID cookie and redirect to users' urls
-    req.session.userID = users[newUserID].id;
-    res.redirect('/urls');
+      // set userID cookie and redirect to users' urls
+      req.session.userID = users[newUserID].id;
+      res.redirect('/urls');
+    } else {
+      res.send('You need to include a password!');
+    }
   } else {
     res.send('An account with that email already exists!');
   }
@@ -255,59 +264,4 @@ app.post('/register', (req, res) => {
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//   /////////////////////////////
-//   // external functions below
-//   /////////////////////////////
 
-
-
-const generateRandomString = function(length) {
-  let string = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
-
-  for (let i = 0; i < length; i++) {
-    string += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-
-  return string;
-};
-
-
-const authenticate = function(reqBody, users) {
-
-  console.log('\ntrying to sign in user:', reqBody.email);
-
-  const user = fetchUserByEmail(reqBody.email, users);
-
-  // hash submitted password and compare it with stored hash key of the user
-  if (user) {
-    if (bcrypt.compareSync(reqBody.password, user.password)) {
-      return user;
-    }
-  }
-  return undefined;
-};
-
-
-const fetchUserURLs = function(userID, urlDatabase) {
-  
-  const userURLs = {};
-
-  for (let url in urlDatabase) {
-    if (urlDatabase[url].userID === userID) {
-      userURLs[url] = urlDatabase[url];
-    }
-  }
-  return userURLs;
-};
-
-
-const fetchUserByEmail = function(email, users) {
-   
-  for (let user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    }
-  }
-  return null;
-};
