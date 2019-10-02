@@ -182,19 +182,29 @@ app.post('/urls' , (req, res) => {
 
 
 app.post('/urls/:shortURL', (req, res) => {
-  urlDatabase[req.params.shortURL] = { longURL: 'http://' + req.body.longURL, userID: req.cookies.user_id };
   
-  console.log(urlDatabase[req.params.shortURL].longURL + '  ' + urlDatabase[req.params.shortURL].userID);
+  if (req.cookies.user_id) {
+    urlDatabase[req.params.shortURL] = { longURL: 'http://' + req.body.longURL, userID: req.cookies.user_id };
 
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies.user_id] };
+    console.log('updaaaaate!   ' + urlDatabase[req.params.shortURL].longURL + '  ' + urlDatabase[req.params.shortURL].userID);
 
-  res.render('urls_show', templateVars);
+    const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies.user_id] };
+    res.render('urls_show', templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 
 app.post('/urls/:shortURL/delete', (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls');
+  
+  if (req.cookies.user_id) {
+    console.log('a user was logged in when the request was made!');
+    delete urlDatabase[req.params.shortURL];
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 
@@ -277,7 +287,6 @@ const fetchUserURLs = function(userID) {
   const userURLs = {};
 
   for (let url in urlDatabase) {
-    console.log(urlDatabase[url].userID + '  ' + userID);
     if (urlDatabase[url].userID === userID) {
       userURLs[url] = urlDatabase[url];
     }
