@@ -99,10 +99,15 @@ app.get('/', (req, res) => {
 
 
 app.get('/urls', (req, res) => {
+
+  console.log(req.cookies.user_id);
+
+  const userURLS = fetchUserURLs(req.cookies.user_id);
+
   // renders the urlDatabase in an easy to read table on the page /urls
   let templateVars = {
     user: users[req.cookies.user_id],
-    urls: urlDatabase
+    urls: userURLS
   };
   console.log("rendering urlDatabase on /urls");
   res.render('urls_index', templateVars);
@@ -110,8 +115,6 @@ app.get('/urls', (req, res) => {
 
 
 app.get('/urls/new', (req, res) => {
-
-
 
   if (!req.cookies.user_id) {
     console.log('login first!');
@@ -196,17 +199,17 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 
 app.post('/login', (req, res) => {
-  for (let user in users) {
-    console.log(`user ${users[user].email}   from form ${req.body.email}`);
-    if (users[user].email === req.body.email) {
-      if (users[user].password === req.body.password) {
-        res.cookie('user_id', users[user].id);
-        res.redirect('/urls');
-        return;
-      }
-    }
+  
+  const reqBody = req.body;
+  const user = authenticate(reqBody);
+
+  if (user) {
+    res.cookie('user_id', user.id);
+    res.redirect('/urls');
+    return;
+  } else {
+    res.status(403).send('user email or password incorrect!');
   }
-  res.status(403).send('user email or password incorrect!');
 });
 
 
@@ -254,4 +257,30 @@ const generateRandomString = function(length) {
   }
 
   return string;
+};
+
+const authenticate = function(reqBody) {
+  for (let user in users) {
+    console.log(`user ${users[user].email}   from form ${reqBody.email}`);
+    if (users[user].email === reqBody.email) {
+      if (users[user].password === reqBody.password) {
+        return users[user];
+      }
+    }
+  }
+
+  return undefined;
+};
+
+const fetchUserURLs = function(userID) {
+  
+  const userURLs = {};
+
+  for (let url in urlDatabase) {
+    console.log(urlDatabase[url].userID + '  ' + userID);
+    if (urlDatabase[url].userID === userID) {
+      userURLs[url] = urlDatabase[url];
+    }
+  }
+  return userURLs;
 };
