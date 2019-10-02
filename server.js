@@ -20,6 +20,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
@@ -48,16 +49,16 @@ const urlDatabase = {
 // urlDatabase[newKey].longURL = 'http://' + req.body.longURL;
 
 const users = {
-  "ojr": {
-    id: "ojr",
-    email: "o@m.com",
-    password: "p"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
+  // "ojr": {
+  //   id: "ojr",
+  //   email: "o@m.com",
+  //   password: "p"
+  // },
+  // "user2RandomID": {
+  //   id: "user2RandomID",
+  //   email: "user2@example.com",
+  //   password: "dishwasher-funk"
+  // }
 };
 
 
@@ -234,7 +235,8 @@ app.post('/register', (req, res) => {
   users[newUserID] = {
     id: newUserID,
     email: req.body.email,
-    password: req.body.password
+    // pass word is stored as an hash key, with saltRounds: 10
+    password: bcrypt.hashSync(req.body.password, 10)
   };
 
   // set user_id cookie and redirect to users' urls
@@ -266,7 +268,9 @@ const authenticate = function(reqBody) {
   for (let user in users) {
     console.log(`user ${users[user].email}   from form ${reqBody.email}`);
     if (users[user].email === reqBody.email) {
-      if (users[user].password === reqBody.password) {
+
+      // hash submitted password and compare it with stored hash key of the user
+      if (bcrypt.compareSync(reqBody.password, users[user].password)) {
         return users[user];
       }
     }
