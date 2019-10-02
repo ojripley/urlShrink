@@ -96,7 +96,7 @@ app.get('/urls', (req, res) => {
 
   console.log('session cookie id in /urls', req.session.userID);
 
-  const userURLS = fetchUserURLs(req.session.userID);
+  const userURLS = fetchUserURLs(req.session.userID, urlDatabase);
 
   // renders the urlDatabase in an easy to read table on the page /urls
   let templateVars = {
@@ -205,7 +205,9 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.post('/login', (req, res) => {
   
   const reqBody = req.body;
-  const user = authenticate(reqBody);
+  const user = authenticate(reqBody, users);
+
+  console.log('\n\nuser after authentication: ', user);
 
   if (user) {
     req.session.userID = user.id;
@@ -229,19 +231,24 @@ app.post('/logout', (req, res) => {
 app.post('/register', (req, res) => {
   // registration handler
 
-  const newUserID = generateRandomString(3);
+  if (!fetchUserByEmail(req.body.email, users)) {
+    // if user email does not already exist
 
-  // new user object
-  users[newUserID] = {
-    id: newUserID,
-    email: req.body.email,
-    // pass word is stored as an hash key, with saltRounds: 10
-    password: bcrypt.hashSync(req.body.password, 10)
-  };
+    // new user object
+    const newUserID = generateRandomString(3);
+    users[newUserID] = {
+      id: newUserID,
+      email: req.body.email,
+      // pass word is stored as an hash key, with saltRounds: 10
+      password: bcrypt.hashSync(req.body.password, 10)
+    };
 
-  // set userID cookie and redirect to users' urls
-  req.session.userID = users[newUserID].id;
-  res.redirect('/urls');
+    // set userID cookie and redirect to users' urls
+    req.session.userID = users[newUserID].id;
+    res.redirect('/urls');
+  } else {
+    res.send('An account with that email already exists!');
+  }
 });
 
 
@@ -251,6 +258,8 @@ app.post('/register', (req, res) => {
 //   /////////////////////////////
 //   // external functions below
 //   /////////////////////////////
+
+
 
 const generateRandomString = function(length) {
   let string = '';
@@ -263,24 +272,24 @@ const generateRandomString = function(length) {
   return string;
 };
 
-const authenticate = function(reqBody) {
 
-  console.log('\ntring to sign in user:', reqBody.email);
+const authenticate = function(reqBody, users) {
 
-  for (let user in users) {
-    console.log(`user ${users[user].email}   from form ${reqBody.email}`);
-    if (users[user].email === reqBody.email) {
+  console.log('\ntrying to sign in user:', reqBody.email);
 
-      // hash submitted password and compare it with stored hash key of the user
-      if (bcrypt.compareSync(reqBody.password, users[user].password)) {
-        return users[user];
-      }
+  const user = fetchUserByEmail(reqBody.email, users);
+
+  // hash submitted password and compare it with stored hash key of the user
+  if (user) {
+    if (bcrypt.compareSync(reqBody.password, user.password)) {
+      return user;
     }
   }
   return undefined;
 };
 
-const fetchUserURLs = function(userID) {
+
+const fetchUserURLs = function(userID, urlDatabase) {
   
   const userURLs = {};
 
@@ -290,4 +299,15 @@ const fetchUserURLs = function(userID) {
     }
   }
   return userURLs;
+};
+
+
+const fetchUserByEmail = function(email, users) {
+   
+  for (let user in users) {
+    if (users[user].email === email) {
+      return users[user];
+    }
+  }
+  return null;
 };
