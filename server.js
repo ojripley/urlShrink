@@ -247,7 +247,7 @@ app.put('/urls/:shortURL', (req, res) => {
   if (req.session.userID) {
     if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
       // overwrite long url
-      urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+      urlDatabase[req.params.shortURL].longURL = 'http://' + req.body.longURL;
       // reset analytic stats
       urlDatabase[req.params.shortURL].visits = [];
 
