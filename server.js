@@ -7,7 +7,8 @@
 //  Tiny App Assignment
 //  Week 3 of Lighthouse Labs
 //  Owen Ripley
-//  September, 2019
+//  Created September 30, 2019
+//  Last updated October 3, 2019
 //
 //
 //
@@ -26,7 +27,6 @@ const {
   authenticate,
   fetchUserURLs,
   fetchUserByEmail,
-  isLoggedIn
 } = require('./helperFunctions');
 const app = express();
 const PORT = 8080;
@@ -48,12 +48,11 @@ app.use(cookieParser({signed: false}));
 
 
 // temporary database set up (stored in objects for now instead of a real database)
+// this means that the database will reset to default whenever the server is shut down
 const urlDatabase = {
   'b2xVn2': { longURL: 'http://www.lighthouselabs.ca', userID: 'ojr' },
   '9sm5xK': { longURL: 'http://www.google.com', userID: 'ojr' }
 };
-
-// urlDatabase[newKey].longURL = 'http://' + req.body.longURL;
 
 const users = {
   "ojr": {
@@ -101,24 +100,14 @@ app.get('/', (req, res) => {
   } else {
     res.redirect('/urls');
   }
-  
 });
 
 
 app.get('/urls', (req, res) => {
 
-
   if (!req.session.userID) {
+    res.status(401);
     res.send('You need to login in first!');
-
-    // setTimeout(function() {
-
-    //   console.log('this is ' + res);
-
-    //   res.redirect('/login');
-    //   return;
-    // }, 5000, res);
-
   } else {
     const userURLS = fetchUserURLs(req.session.userID, urlDatabase);
 
@@ -137,6 +126,8 @@ app.get('/urls/new', (req, res) => {
 
   if (!req.session.userID) {
     console.log('login first!');
+    
+    res.status(401);
     res.redirect('/login');
   } else {
     console.log('letting you in!');
@@ -150,33 +141,33 @@ app.get('/urls/new', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
 
   if (!urlDatabase[req.params.shortURL]) {
+    res.status(404);
     res.send('Sorry, that URL doesn\'t exist!');
   } else if (req.session.userID) {
     if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
+
       // req.params.shortURL refers to the variable in the address. :efjfjefojef becomes a paramater when the address is parsed
       let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userID] };
       console.log(`rendering a page for the url ${templateVars.longURL}`);
       res.render('urls_show', templateVars);
     } else {
+      res.status(403);
       res.send('Sorry, your account does not have access to this URL.');
     }
   } else {
+    res.status(401);
     res.send('Please login first!');
   }
-});
-
-
-app.get('/urls.json', (req, res) => {
-  // responding with urlDatabase as a json string
-  res.json(urlDatabase);
 });
 
 
 app.get('/u/:shortURL', (req, res) => {
 
   if (!urlDatabase[req.params.shortURL]) {
+    res.status(404);
     res.send('Sorry, that URL doesn\'t exist!');
   } else {
+
     // redirects user to the longURL endpoint
     res.redirect(urlDatabase[req.params.shortURL].longURL);
   }
@@ -192,7 +183,6 @@ app.get('/login', (req, res) => {
   } else {
     res.render('login');
   }
-    
 });
 
 
@@ -217,13 +207,17 @@ app.get('/register', (req, res) => {
 
 app.post('/urls' , (req, res) => {
 
-  if (!req.params.userID) {
+  console.log(req.params);
+
+  if (!req.session.userID) {
+    res.status(401);
     res.send('Please login first!');
   } else {
     const newKey = generateRandomString(6);
+   
     console.log('accepting request to update urlDatabase with new longURL', req.body.longURL);
+   
     urlDatabase[newKey] = { longURL: 'http://' + req.body.longURL, userID: req.session.userID };
-
     res.redirect('/urls/' + newKey);
   }
 });
@@ -240,9 +234,11 @@ app.post('/urls/:shortURL', (req, res) => {
       const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userID] };
       res.render('urls_show', templateVars);
     } else {
+      res.status(403);
       res.send('Sorry, you don\'nt have permission to edit this URL!');
     }
   } else {
+    res.status(401);
     res.send('Please login first!');
   }
 });
@@ -253,12 +249,15 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   if (req.session.userID) {
     if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
       console.log('a user was logged in when the request was made!');
+    
       delete urlDatabase[req.params.shortURL];
       res.redirect('/urls');
     } else {
+      res.status(403);
       res.send('Sorry, you don\'t have permission to edit this URL');
     }
   } else {
+    res.status(401);
     res.send('Please login first!');
   }
 });
@@ -282,6 +281,7 @@ app.post('/login', (req, res) => {
 
 
 app.post('/logout', (req, res) => {
+  
   console.log('\nlogging out the user', req.session.userID);
 
   // delete session cookie by setting it to null
@@ -291,14 +291,12 @@ app.post('/logout', (req, res) => {
 
 
 app.post('/register', (req, res) => {
-  // registration handler
 
   if (!fetchUserByEmail(req.body.email, users)) {
     // if user email does not already exist
     if (req.body.password.length === 0 || req.body.email.length === 0) {
-      
+      res.status(403);
       res.send('Fields cannot be empty!');
-      
     } else {
       // new user object
       const newUserID = generateRandomString(3);
@@ -312,9 +310,9 @@ app.post('/register', (req, res) => {
       // set userID cookie and redirect to users' urls
       req.session.userID = users[newUserID].id;
       res.redirect('/urls');
-      
     }
   } else {
+    res.status(403);
     res.send('An account with that email already exists!');
   }
 });
@@ -322,5 +320,3 @@ app.post('/register', (req, res) => {
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
