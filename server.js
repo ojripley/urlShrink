@@ -22,6 +22,7 @@ const express = require('express');
 const cookieParser = require('cookie-session');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
+const methodOverride = require('method-override');
 const {
   generateRandomString,
   authenticate,
@@ -39,6 +40,10 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 // cookie parser.. still not entirely sure what it is used for, since cookies seem to work without it
 app.use(cookieParser({signed: false}));
+
+// method-override allows use of PUT and DELETE.
+// the browser still makes only GET and POST requests, but the server can now be written as if it were recieving PUT and DELETE
+app.use(methodOverride('X-HTTP-Method-Override'));
 
 
 
