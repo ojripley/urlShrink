@@ -55,8 +55,18 @@ app.use(methodOverride('_method'));
 // temporary database set up (stored in objects for now instead of a real database)
 // this means that the database will reset to default whenever the server is shut down
 const urlDatabase = {
-  'b2xVn2': { longURL: 'http://www.lighthouselabs.ca', userID: 'ojr' },
-  '9sm5xK': { longURL: 'http://www.google.com', userID: 'ojr' }
+  'b2xVn2': {
+    shortURL: 'b2xVn2',
+    longURL: 'http://www.lighthouselabs.ca',
+    userID: 'ojr',
+    visits: []
+  },
+  '9sm5xK': {
+    shortURL: '9sm5xK',
+    longURL: 'http://www.google.com',
+    userID: 'ojr',
+    visits: []
+  }
 };
 
 const users = {
@@ -152,7 +162,7 @@ app.get('/urls/:shortURL', (req, res) => {
     if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
 
       // req.params.shortURL refers to the variable in the address. :efjfjefojef becomes a paramater when the address is parsed
-      let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userID] };
+      let templateVars = { url: urlDatabase[req.params.shortURL], user: users[req.session.userID] };
       console.log(`rendering a page for the url ${templateVars.longURL}`);
       res.render('urls_show', templateVars);
     } else {
@@ -175,6 +185,10 @@ app.get('/u/:shortURL', (req, res) => {
 
     // redirects user to the longURL endpoint
     res.redirect(urlDatabase[req.params.shortURL].longURL);
+
+    urlDatabase[req.params.shortURL].visits.push({ visitID: generateRandomString(4), time: new Date(), visitedBy: req.session.userID});
+
+    console.log(urlDatabase[req.params.shortURL].visits);
   }
 });
 
