@@ -4,9 +4,9 @@ shrinkURL is a full stack web application built with Node and Express that allow
 
 ## Final Product
 
-!["Home Page"](images/shortURL-home.png)
+!["Home Page"](https://raw.githubusercontent.com/ojripley/urlShrink/master/images/shortURL-home.png)
 
-!["URL Page"](https://i.imgur.com/8SN24Ua.png[/img])
+!["URL Page"](https://raw.githubusercontent.com/ojripley/urlShrink/master/images/shortURL-shortLink.png)
 
 ## Dependencies
 
