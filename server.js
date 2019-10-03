@@ -25,7 +25,8 @@ const {
   generateRandomString,
   authenticate,
   fetchUserURLs,
-  fetchUserByEmail
+  fetchUserByEmail,
+  isLoggedIn
 } = require('./helperFunctions');
 const app = express();
 const PORT = 8080;
@@ -94,23 +95,41 @@ app.listen(PORT, () => {
 // get request handlers
 app.get('/', (req, res) => {
   // if user is logged in, redirects to /urls
-  res.redirect('/urls');
+  if (!req.session.userID) {
+    console.log('login first!');
+    res.redirect('/login');
+  } else {
+    res.redirect('/urls');
+  }
+  
 });
 
 
 app.get('/urls', (req, res) => {
 
-  console.log('session cookie id in /urls', req.session.userID);
 
-  const userURLS = fetchUserURLs(req.session.userID, urlDatabase);
+  if (!req.session.userID) {
+    res.send('You need to login in first!');
 
-  // renders the urlDatabase in an easy to read table on the page /urls
-  let templateVars = {
-    user: users[req.session.userID],
-    urls: userURLS
-  };
-  console.log("rendering urlDatabase on /urls");
-  res.render('urls_index', templateVars);
+    // setTimeout(function() {
+
+    //   console.log('this is ' + res);
+
+    //   res.redirect('/login');
+    //   return;
+    // }, 5000, res);
+
+  } else {
+    const userURLS = fetchUserURLs(req.session.userID, urlDatabase);
+
+    // renders the urlDatabase in an easy to read table on the page /urls
+    let templateVars = {
+      user: users[req.session.userID],
+      urls: userURLS
+    };
+    console.log("rendering urlDatabase on /urls");
+    res.render('urls_index', templateVars);
+  }
 });
 
 
@@ -129,10 +148,21 @@ app.get('/urls/new', (req, res) => {
 // the colon in this address makes the following a VARIABLE. so 'shortURL' is not translated literally
 // this means that route definitions matter! urls/new must come before urls/:id because otherwise we will land on :new (which we don't want)
 app.get('/urls/:shortURL', (req, res) => {
-  // req.params.shortURL refers to the variable in the address. :efjfjefojef becomes a paramater when the address is parsed
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userID] };
-  console.log(`rendering a page for the url ${templateVars.longURL}`);
-  res.render('urls_show', templateVars);
+
+  if (!urlDatabase[req.params.shortURL]) {
+    res.send('Sorry, that URL doesn\'t exist!');
+  } else if (req.session.userID) {
+    if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
+      // req.params.shortURL refers to the variable in the address. :efjfjefojef becomes a paramater when the address is parsed
+      let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userID] };
+      console.log(`rendering a page for the url ${templateVars.longURL}`);
+      res.render('urls_show', templateVars);
+    } else {
+      res.send('Sorry, your account does not have access to this URL.');
+    }
+  } else {
+    res.send('Please login first!');
+  }
 });
 
 
@@ -143,18 +173,35 @@ app.get('/urls.json', (req, res) => {
 
 
 app.get('/u/:shortURL', (req, res) => {
-  // redirects user to the longURL endpoint
-  res.redirect(urlDatabase[req.params.shortURL].longURL);
+
+  if (!urlDatabase[req.params.shortURL]) {
+    res.send('Sorry, that URL doesn\'t exist!');
+  } else {
+    // redirects user to the longURL endpoint
+    res.redirect(urlDatabase[req.params.shortURL].longURL);
+  }
 });
 
 
 app.get('/login', (req, res) => {
-  res.render('login');
+  
+  console.log(req.session.userID);
+
+  if (req.session.userID) {
+    res.redirect('/urls');
+  } else {
+    res.render('login');
+  }
+    
 });
 
 
 app.get('/register', (req, res) => {
-  res.render('register');
+  if (req.session.userID) {
+    res.redirect('/urls');
+  } else {
+    res.render('register');
+  }
 });
 
 
@@ -169,29 +216,34 @@ app.get('/register', (req, res) => {
 //   /////////////////////////////
 
 app.post('/urls' , (req, res) => {
-  const newKey = generateRandomString(6);
-  console.log('accepting request to update urlDatabase with new longURL', req.body.longURL);
-  urlDatabase[newKey] = { longURL: 'http://' + req.body.longURL, userID: req.session.userID };
 
-  console.log(req.session.userID);
+  if (!req.params.userID) {
+    res.send('Please login first!');
+  } else {
+    const newKey = generateRandomString(6);
+    console.log('accepting request to update urlDatabase with new longURL', req.body.longURL);
+    urlDatabase[newKey] = { longURL: 'http://' + req.body.longURL, userID: req.session.userID };
 
-  console.log(`new link object is ${urlDatabase[newKey].longURL} and ${urlDatabase[newKey].userID}`);
-
-  res.redirect('/urls/' + newKey);
+    res.redirect('/urls/' + newKey);
+  }
 });
 
 
 app.post('/urls/:shortURL', (req, res) => {
   
   if (req.session.userID) {
-    urlDatabase[req.params.shortURL] = { longURL: 'http://' + req.body.longURL, userID: req.session.userID };
+    if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
+      urlDatabase[req.params.shortURL] = { longURL: 'http://' + req.body.longURL, userID: req.session.userID };
 
-    console.log('updaaaaate!   ' + urlDatabase[req.params.shortURL].longURL + '  ' + urlDatabase[req.params.shortURL].userID);
+      console.log('updaaaaate!   ' + urlDatabase[req.params.shortURL].longURL + '  ' + urlDatabase[req.params.shortURL].userID);
 
-    const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userID] };
-    res.render('urls_show', templateVars);
+      const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userID] };
+      res.render('urls_show', templateVars);
+    } else {
+      res.send('Sorry, you don\'nt have permission to edit this URL!');
+    }
   } else {
-    res.redirect('/login');
+    res.send('Please login first!');
   }
 });
 
@@ -199,11 +251,15 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   
   if (req.session.userID) {
-    console.log('a user was logged in when the request was made!');
-    delete urlDatabase[req.params.shortURL];
-    res.redirect('/urls');
+    if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
+      console.log('a user was logged in when the request was made!');
+      delete urlDatabase[req.params.shortURL];
+      res.redirect('/urls');
+    } else {
+      res.send('Sorry, you don\'t have permission to edit this URL');
+    }
   } else {
-    res.redirect('/login');
+    res.send('Please login first!');
   }
 });
 
@@ -216,7 +272,7 @@ app.post('/login', (req, res) => {
   console.log('\n\nuser after authentication: ', user);
 
   if (user) {
-    req.session.userID = user.id;
+    req.session.userID = user.id; // this is a session cookie set
     res.redirect('/urls');
     return;
   } else {
@@ -226,11 +282,11 @@ app.post('/login', (req, res) => {
 
 
 app.post('/logout', (req, res) => {
-  console.log('\ntime to logout the user', req.session.userID);
+  console.log('\nlogging out the user', req.session.userID);
 
   // delete session cookie by setting it to null
   req.session.userID = null;
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 
@@ -239,7 +295,11 @@ app.post('/register', (req, res) => {
 
   if (!fetchUserByEmail(req.body.email, users)) {
     // if user email does not already exist
-    if (req.body.password.length !== 0) {
+    if (req.body.password.length === 0 || req.body.email.length === 0) {
+      
+      res.send('Fields cannot be empty!');
+      
+    } else {
       // new user object
       const newUserID = generateRandomString(3);
       users[newUserID] = {
@@ -252,8 +312,7 @@ app.post('/register', (req, res) => {
       // set userID cookie and redirect to users' urls
       req.session.userID = users[newUserID].id;
       res.redirect('/urls');
-    } else {
-      res.send('You need to include a password!');
+      
     }
   } else {
     res.send('An account with that email already exists!');

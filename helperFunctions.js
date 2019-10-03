@@ -58,9 +58,18 @@ const fetchUserByEmail = function(email, users) {
   return null;
 };
 
+const isLoggedIn = function(res) {
+  if (res.session.userID) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 module.exports = {
   generateRandomString,
   authenticate,
   fetchUserURLs,
-  fetchUserByEmail
+  fetchUserByEmail,
+  isLoggedIn
 };
