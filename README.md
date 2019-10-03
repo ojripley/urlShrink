@@ -6,7 +6,7 @@ shrinkURL is a full stack web application built with Node and Express that allow
 
 ![Home Page](https://imgur.com/a/1TNnvss)
 
-![URL Page](/images/shortURL-shortLink.png)
+![URL Page](https://imgur.com/a/TgR6M2F)
 
 ## Dependencies
 
