@@ -43,7 +43,7 @@ app.use(cookieParser({signed: false}));
 
 // method-override allows use of PUT and DELETE.
 // the browser still makes only GET and POST requests, but the server can now be written as if it were recieving PUT and DELETE
-app.use(methodOverride('X-HTTP-Method-Override'));
+app.use(methodOverride('_method'));
 
 
 
@@ -228,7 +228,7 @@ app.post('/urls' , (req, res) => {
 });
 
 
-app.post('/urls/:shortURL', (req, res) => {
+app.put('/urls/:shortURL', (req, res) => {
   
   if (req.session.userID) {
     if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
@@ -249,7 +249,7 @@ app.post('/urls/:shortURL', (req, res) => {
 });
 
 
-app.post('/urls/:shortURL/delete', (req, res) => {
+app.delete('/urls/:shortURL/delete', (req, res) => {
   
   if (req.session.userID) {
     if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
