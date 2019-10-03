@@ -4,7 +4,7 @@ shrinkURL is a full stack web application built with Node and Express that allow
 
 ## Final Product
 
-![Home Page]([img]https://i.imgur.com/8SN24Ua.png[/img])
+![Home Page](https://i.imgur.com/8SN24Ua.png[/img])
 
 ![URL Page](https://imgur.com/8SN24Ua)
 
