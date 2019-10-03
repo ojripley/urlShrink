@@ -185,10 +185,9 @@ app.get('/u/:shortURL', (req, res) => {
 
     // redirects user to the longURL endpoint
     res.redirect(urlDatabase[req.params.shortURL].longURL);
-
+    
+    // update analytic stats
     urlDatabase[req.params.shortURL].visits.push({ visitID: generateRandomString(4), time: new Date(), visitedBy: req.session.userID});
-
-    console.log(urlDatabase[req.params.shortURL].visits);
   }
 });
 
@@ -236,7 +235,8 @@ app.post('/urls' , (req, res) => {
    
     console.log('accepting request to update urlDatabase with new longURL', req.body.longURL);
    
-    urlDatabase[newKey] = { longURL: 'http://' + req.body.longURL, userID: req.session.userID };
+    urlDatabase[newKey] = { shortURL: newKey, longURL: 'http://' + req.body.longURL, userID: req.session.userID, visits: [] };
+
     res.redirect('/urls/' + newKey);
   }
 });
@@ -246,11 +246,14 @@ app.put('/urls/:shortURL', (req, res) => {
   
   if (req.session.userID) {
     if (req.session.userID === urlDatabase[req.params.shortURL].userID) {
-      urlDatabase[req.params.shortURL] = { longURL: 'http://' + req.body.longURL, userID: req.session.userID };
+      // overwrite long url
+      urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+      // reset analytic stats
+      urlDatabase[req.params.shortURL].visits = [];
 
       console.log('updaaaaate!   ' + urlDatabase[req.params.shortURL].longURL + '  ' + urlDatabase[req.params.shortURL].userID);
 
-      const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userID] };
+      const templateVars = { url: urlDatabase[req.params.shortURL], user: users[req.session.userID] };
       res.render('urls_show', templateVars);
     } else {
       res.status(403);
